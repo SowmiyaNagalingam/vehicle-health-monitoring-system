@@ -1,0 +1,73 @@
+#define BLYNK_TEMPLATE_ID "TMPLHGZRe_qv"
+#define BLYNK_TEMPLATE_NAME "Vehicle health monitor system"
+#define BLYNK_AUTH_TOKEN "QmgKdiRL9hAcjRH-cgeKN9TbyuTKkByk"
+#define BLYNK_PRINT Serial
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <BlynkSimpleEsp32.h>
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "IOT";
+char pass[] = "987654321";
+WidgetLCD lcd(V0);
+#define ther 34
+#define vib 36
+#define buz 22
+void setup() 
+{
+ Blynk.begin(auth, ssid, pass);
+ pinMode(ther,INPUT);
+ pinMode(vib,INPUT);
+ pinMode(buz,OUTPUT);
+ Serial.begin(9600);
+}
+VOid loop() 
+{
+  Blynk.run();
+  lcd.print(0,0,"Vehicle Health ");
+  lcd.print(0,1,"Monitor System ");
+  delay(3000);
+  lcd.clear();
+  while(1)
+  {
+  int t,v;
+  t=analogRead(ther);
+  t=t/24;
+  Blynk.virtualWrite(V1,t);
+  v=analogRead(vib);
+  Blynk.virtualWrite(V2,v);
+  delay(1000);
+  if(t<90)
+  {
+   Blynk.virtualWrite(V1,"104");
+   lcd.print(0,0,"Engine Over      ");
+   lcd.print(0,1,"heated           ");
+   delay(2000);
+   digitalWrite(buz,1);
+   delay(100);
+   digitalWrite(buz,0);
+   delay(10);
+   digitalWrite(buz,1);  delay(10);
+   digitalWrite(buz,0);
+   delay(10);
+  }
+if(v>100)
+  {
+   lcd.print(0,0,"Accident         ");
+   lcd.print(0,1,"Occurred         ");
+   delay(2000);
+   digitalWrite(buz,1);
+   delay(500);
+   digitalWrite(buz,0);
+   delay(30);
+   digitalWrite(buz,1);
+   delay(300);
+   digitalWrite(buz,0);
+   delay(20);
+  }
+  else
+  {
+   lcd.print(0,0,"                ");
+   lcd.print(0,1,"                ");
+  }
+  }
+}
