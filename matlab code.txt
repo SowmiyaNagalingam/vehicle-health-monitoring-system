@@ -1,0 +1,114 @@
+I22=HazeImg;
+I22=rgb2gray(I22);
+
+
+n11=detectSURFFeatures(I11);
+n22=[file,path]=uigetfile('input\*.*');
+filename=strcat(path,file);
+
+HazeImg = imread(filename);
+figure, imshow(HazeImg, []);
+
+    method = 'manual';
+wsz = 15; % window size
+A = Airlight(HazeImg, method, wsz);
+
+  wsz = 3; % window size
+ts = Boundcon(HazeImg, A, 30, 300, wsz);
+
+    lambda = 2;  % regularization parameter, the more this parameter, the closer to the original patch-wise transmission
+t = CalTransmission(HazeImg, ts, lambda, 0.5); % using contextual information
+
+    r = Dehazefun(HazeImg, t, A, 0.85);
+
+% show and save the results
+figure, imshow(ts, []);
+figure, imshow(1-t, []); colormap hot;
+figure, imshow(r, []);
+
+I11=HazeImg;
+I11=rgb2gray(I11);
+
+
+
+detectSURFFeatures(I22);
+
+
+
+[k11, n11] = extractFeatures(I11, n11);
+[k22, n22] = extractFeatures(I22, n22);
+
+
+boxPairs = matchFeatures(k11, k22);
+
+matchedBoxPoints = n11(boxPairs(:, 1), :);
+matchedScenePoints = n22(boxPairs(:, 2), :);
+figure;
+showMatchedFeatures(HazeImg, HazeImg, matchedBoxPoints, ...
+    matchedScenePoints, 'montage');
+title('Putatively Matched Points (Including Outliers)');
+
+I1=r;
+I1=rgb2gray(I1);
+
+
+
+I2=r;
+I2=rgb2gray(I2);
+
+
+n1=detectSURFFeatures(I1);
+n2=detectSURFFeatures(I2);
+
+
+
+[k1, n1] = extractFeatures(I1, n1);
+[k2, n2] = extractFeatures(I2, n2);
+
+
+boxPairs = matchFeatures(k1, k2);
+
+matchedBoxPoints1 = n1(boxPairs(:, 1), :);
+matchedScenePoints1 = n2(boxPairs(:, 2), :);
+figure;
+showMatchedFeatures(r, r, matchedBoxPoints1, ...
+    matchedScenePoints1, 'montage');
+title('Putatively Matched Points (Including Outliers)');
+
+  disp('No of good matches for HAZE IMAGE');
+    disp('---------------------------------');
+    disp(matchedScenePoints.Count);
+    disp('No of good matches for DEHAZE IMAGE');
+    disp('---------------------------------');
+    disp(matchedScenePoints1.Count);
+   
+   
+        inputimage=HazeImg;
+     c1 = recog1(inputimage);
+       c2 = recog2(inputimage);
+       
+       if c1 == 1
+           disp('Haze image Detected: Engine power minimized ');
+           obj1=instrfind('Type','serial','Port','COM3','Tag','')
+if isempty(obj1)
+obj1 = serial('COM3');
+else
+fclose(obj1);
+obj1 = obj1(1);
+end
+obj1.BaudRate = 9600;
+fopen(obj1);
+pause(1);
+% send a data
+fprintf(obj1,'a');
+pause(1);
+fprintf(obj1,'a');
+pause(1);
+msgbox('updated to hardware');
+disp('k');
+
+       end
+       if c2 == 1
+           
+           disp('Clear image no action needed ');
+       end
